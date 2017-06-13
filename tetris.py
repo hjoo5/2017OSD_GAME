@@ -1,10 +1,7 @@
-# Tetromino (a Tetris clone)
-# By Al Sweigart al@inventwithpython.com
-# http://inventwithpython.com/pygame
-# Released under a "Simplified BSD" license
-
 import random, time, pygame, sys
+import pickle
 from pygame.locals import *
+from os import path
 # from random import randrange as rand
 # import pygame, sys
 
@@ -15,6 +12,11 @@ BOXSIZE = 20
 BOARDWIDTH = 10
 BOARDHEIGHT = 20
 BLANK = '.'
+muteFlag = 0
+
+highScoreFile = open("score.txt", "r")
+highScore = int(highScoreFile.read())
+highScoreFile.close()
 
 MOVESIDEWAYSFREQ = 0.15
 MOVEDOWNFREQ = 0.1
@@ -35,7 +37,7 @@ LIGHTBLUE   = ( 20,  20, 175)
 YELLOW      = (155, 155,   0)
 LIGHTYELLOW = (175, 175,  20)
 
-BORDERCOLOR = BLUE
+BORDERCOLOR = WHITE
 BGCOLOR = BLACK
 TEXTCOLOR = WHITE
 TEXTSHADOWCOLOR = GRAY
@@ -156,27 +158,80 @@ PIECES = {'S': S_SHAPE_TEMPLATE,
           'O': O_SHAPE_TEMPLATE,
           'T': T_SHAPE_TEMPLATE}
 
-
 def main():
-    global FPSCLOCK, DISPLAYSURF, BASICFONT, BIGFONT
+    global FPSCLOCK, DISPLAYSURF, BASICFONT, BIGFONT, MIDFONT, BFONT, BGCOLOR, muteFlag, SFONT
     pygame.init()
+    pygame.display.set_caption("Tetromino")
     FPSCLOCK = pygame.time.Clock()
     DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
+    DISPLAYSURF.fill(BGCOLOR)
     BASICFONT = pygame.font.Font('freesansbold.ttf', 18)
+    MIDFONT = pygame.font.Font('freesansbold.ttf', 70)
     BIGFONT = pygame.font.Font('freesansbold.ttf', 100)
-    pygame.display.set_caption('Tetromino')
+    BFONT = pygame.font.Font('freesansbold.ttf', 80)
+    SFONT = pygame.font.Font('freesansbold.ttf', 25)
+    titleSurf, titleRect = makeTextObjs('Tetetetris', BFONT, TEXTCOLOR)
+    titleRect.center = (int(WINDOWWIDTH / 2)-3, int(WINDOWHEIGHT / 2)-50)
+    DISPLAYSURF.blit(titleSurf, titleRect)
+    showTextScreen2(' ')
+    DISPLAYSURF.fill(BGCOLOR)
+    choose = dumbmenu(DISPLAYSURF, [
+                        'Start Game',
+                        'Mute',
+                        'Show Highscore',
+                        'Instruction',
+                        'Quit Game'], 160,250,None,40,1.4)
+    DISPLAYSURF.fill(BGCOLOR)
+    if choose == 0:
+        DISPLAYSURF.fill(BGCOLOR)
 
-    showTextScreen('Tetromino')
-    while True: # game loop
-        # if random.randint(0, 1) == 0:
-        #     pygame.mixer.music.load('tetrisb.mid')
-        # else:
-        #     pygame.mixer.music.load('tetrisc.mid')
-        # pygame.mixer.music.play(-1, 0.0)
+        if muteFlag == 0 :
+            if random.randint(0, 1) == 0:
+                pygame.mixer.music.load('Tell_me.mid')
+            else:
+                pygame.mixer.music.load('Tell_me.mid')
+            pygame.mixer.music.play(1, 0.0)
         runGame()
-        # pygame.mixer.music.stop()
-        showTextScreen('Game Over')
+        pygame.mixer.music.stop()
+        showTextScreen3('Game Over')
+        main()
 
+    elif choose == 1:
+        DISPLAYSURF.fill(BGCOLOR)
+        showTextScreen2('About Mute')
+        DISPLAYSURF.fill(BGCOLOR)
+        choose2 = dumbmenu(DISPLAYSURF, [
+                                'Mute',
+                                'Unmute',
+                                'Back'], 160,350,None,30,1.4)
+        if choose2 == 0 :
+            muteFlag = -1
+            main()
+        elif choose2 == 1 :
+            muteFlag = 0
+            main()
+        elif choose2 == 2 :
+            main()
+
+    elif choose == 2:
+        DISPLAYSURF.fill(BGCOLOR)
+        showScoreScreen()
+
+        choose2 = dumbmenu(DISPLAYSURF, [
+                                'Back'], 160,350,None,30,1.4)
+        if choose2 == 0 :
+            DISPLAYSURF.fill(BGCOLOR)
+            main()
+
+    elif choose == 3:
+        DISPLAYSURF.fill(BGCOLOR)
+        showTextScreen4()
+
+        choose2 = dumbmenu(DISPLAYSURF, [
+                                'Back'], 160,350,None,30,1.4)
+        if choose2 == 0 :
+            DISPLAYSURF.fill(BGCOLOR)
+            main()
 
 def runGame():
     # setup variables for the start of the game
@@ -208,7 +263,7 @@ def runGame():
             if event.type == KEYUP:
                 if (event.key == K_p):
                     # Pausing the game
-                    DISPLAYSURF.fill(BGCOLOR)
+                    # DISPLAYSURF.fill(BGCOLOR)
                     pygame.mixer.music.stop()
                     showTextScreen('Paused') # pause until a key press
                     pygame.mixer.music.play(-1, 0.0)
@@ -262,6 +317,15 @@ def runGame():
                         if not isValidPosition(board, fallingPiece, adjY=i):
                             break
                     fallingPiece['y'] += i - 1
+# block change!@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                elif event.key == K_z:
+                    savePiece = fallingPiece
+                    fallingPiece = nextPiece
+                    nextPiece = savePiece
+                    nextPiece['x'] = int(BOARDWIDTH / 2) - int(TEMPLATEWIDTH / 2)
+                    nextPiece['y'] = -2
+                    lastFallTime = time.time()
+
 
         # handle moving the piece because of user input
         if (movingLeft or movingRight) and time.time() - lastMoveSidewaysTime > MOVESIDEWAYSFREQ:
@@ -282,6 +346,11 @@ def runGame():
                 # falling piece has landed, set it on the board
                 addToBoard(board, fallingPiece)
                 score += removeCompleteLines(board)
+                if highScore < score :
+                    newHighScore = score
+                    highScoreFile = open("score.txt", "w")
+                    highScoreFile.write(str(newHighScore))
+                    highScoreFile.close()
                 level, fallFreq = calculateLevelAndFallFreq(score)
                 fallingPiece = None
             else:
@@ -299,6 +368,8 @@ def runGame():
 
         pygame.display.update()
         FPSCLOCK.tick(FPS)
+
+    
 
 
 def makeTextObjs(text, font, color):
@@ -345,6 +416,86 @@ def showTextScreen(text):
         pygame.display.update()
         FPSCLOCK.tick()
 
+def showTextScreen2(text):
+    # This function displays large text in the
+    # center of the screen until a key is pressed.
+    # Draw the text drop shadow
+    titleSurf, titleRect = makeTextObjs(text, MIDFONT, TEXTSHADOWCOLOR)
+    titleRect.center = (int(WINDOWWIDTH / 2), int(WINDOWHEIGHT / 2))
+    DISPLAYSURF.blit(titleSurf, titleRect)
+    titleSurf, titleRect = makeTextObjs(text, MIDFONT, TEXTCOLOR)
+    titleRect.center = (int(WINDOWWIDTH / 2) - 3, int(WINDOWHEIGHT / 2) - 3)
+    DISPLAYSURF.blit(titleSurf, titleRect)
+
+    # Draw the additional "Press a key to play." text.
+    # pressKeySurf, pressKeyRect = makeTextObjs('Press a key to play.', BASICFONT, TEXTCOLOR)
+    # pressKeyRect.center = (int(WINDOWWIDTH / 2), int(WINDOWHEIGHT / 2) + 100)
+    # DISPLAYSURF.blit(pressKeySurf, pressKeyRect)
+
+    while checkForKeyPress() == None:
+        pygame.display.update()
+        FPSCLOCK.tick()
+
+def showTextScreen3(text):
+    # This function displays large text in the
+    # center of the screen until a key is pressed.
+    # Draw the text drop shadow
+    titleSurf, titleRect = makeTextObjs(text, MIDFONT, TEXTSHADOWCOLOR)
+    titleRect.center = (int(WINDOWWIDTH / 2), int(WINDOWHEIGHT / 2))
+    DISPLAYSURF.blit(titleSurf, titleRect)
+    titleSurf, titleRect = makeTextObjs(text, MIDFONT, TEXTCOLOR)
+    titleRect.center = (int(WINDOWWIDTH / 2) - 3, int(WINDOWHEIGHT / 2) - 3)
+    DISPLAYSURF.blit(titleSurf, titleRect)
+
+    # Draw the additional "Press a key to play." text.
+    pressKeySurf, pressKeyRect = makeTextObjs('Press a key to go main', BASICFONT, TEXTCOLOR)
+    pressKeyRect.center = (int(WINDOWWIDTH / 2), int(WINDOWHEIGHT / 2) + 100)
+    DISPLAYSURF.blit(pressKeySurf, pressKeyRect)
+
+    while checkForKeyPress() == None:
+        pygame.display.update()
+        FPSCLOCK.tick()
+
+def showTextScreen4():
+
+    lSurf, lRect = makeTextObjs('Left arrow : Move left', SFONT, TEXTCOLOR)
+    rSurf, rRect = makeTextObjs('Right arrow : Move right', SFONT, TEXTCOLOR)
+    uSurf, uRect = makeTextObjs('Up arrow : rotate right', SFONT, TEXTCOLOR)
+    dSurf, dRect = makeTextObjs('Down arrow : Slow drop', SFONT, TEXTCOLOR)
+    sSurf, sRect = makeTextObjs('Space bar : Fast drop', SFONT, TEXTCOLOR)
+    pSurf, pRect = makeTextObjs('P key : Pause game', SFONT, TEXTCOLOR)
+    zSurf, zRect = makeTextObjs('Z key : Get next block', SFONT, TEXTCOLOR)
+    lRect.center = (int(WINDOWWIDTH / 2)-3, int(WINDOWHEIGHT / 2)-150)
+    rRect.center = (int(WINDOWWIDTH / 2)-3, int(WINDOWHEIGHT / 2)-120)
+    uRect.center = (int(WINDOWWIDTH / 2)-3, int(WINDOWHEIGHT / 2)-90)
+    dRect.center = (int(WINDOWWIDTH / 2)-3, int(WINDOWHEIGHT / 2)-60)
+    sRect.center = (int(WINDOWWIDTH / 2)-3, int(WINDOWHEIGHT / 2)-30)
+    pRect.center = (int(WINDOWWIDTH / 2)-3, int(WINDOWHEIGHT / 2))
+    zRect.center = (int(WINDOWWIDTH / 2)-3, int(WINDOWHEIGHT / 2)+30)
+    DISPLAYSURF.blit(lSurf, lRect)
+    DISPLAYSURF.blit(rSurf, rRect)
+    DISPLAYSURF.blit(uSurf, uRect)
+    DISPLAYSURF.blit(dSurf, dRect)
+    DISPLAYSURF.blit(sSurf, sRect)
+    DISPLAYSURF.blit(pSurf, pRect)
+    DISPLAYSURF.blit(zSurf, zRect)
+
+    while checkForKeyPress() == None:
+        pygame.display.update()
+        FPSCLOCK.tick()
+
+def showScoreScreen():
+
+    highScoreFile = open("score.txt", "r")
+    highScore = int(highScoreFile.read())
+    highScoreFile.close()
+    sSurf, sRect = makeTextObjs('High Score: %s' % highScore, MIDFONT, TEXTCOLOR)
+    sRect.center = (int(WINDOWWIDTH / 2)-3, int(WINDOWHEIGHT / 2)-30)
+    DISPLAYSURF.blit(sSurf, sRect)
+
+    while checkForKeyPress() == None:
+        pygame.display.update()
+        FPSCLOCK.tick()
 
 def checkForQuit():
     for event in pygame.event.get(QUIT): # get all the QUIT events
@@ -353,7 +504,6 @@ def checkForQuit():
         if event.key == K_ESCAPE:
             terminate() # terminate if the KEYUP event was for the Esc key
         pygame.event.post(event) # put the other KEYUP event objects back
-
 
 def calculateLevelAndFallFreq(score):
     # Based on the score, return the level the player is on and
@@ -441,6 +591,163 @@ def convertToPixelCoords(boxx, boxy):
     # coordinates of the location on the screen.
     return (XMARGIN + (boxx * BOXSIZE)), (TOPMARGIN + (boxy * BOXSIZE))
 
+def dumbmenu(screen, menu, x_pos = 100, y_pos = 100, font = None,
+            size = 150, distance = 1.4, fgcolor = (255,255,255),
+            cursorcolor = (255,0,0), exitAllowed = True):
+    # Draw the Menupoints
+    pygame.font.init()
+    if font == None:
+        myfont = pygame.font.Font(None, size)
+    else:
+        myfont = pygame.font.SysFont(font, size)
+    cursorpos = 0
+    renderWithChars = False
+    for i in menu:
+        if renderWithChars == False:
+            text =  myfont.render(str(cursorpos + 1)+".  " + i,
+                True, fgcolor)
+        else:
+            text =  myfont.render(chr(char)+".  " + i,
+                True, fgcolor)
+            char += 1
+        textrect = text.get_rect()
+        textrect = textrect.move(x_pos, 
+                   (size // distance * cursorpos) + y_pos)
+        screen.blit(text, textrect)
+        pygame.display.update(textrect)
+        cursorpos += 1
+        if cursorpos == 9:
+            renderWithChars = True
+            char = 65
+
+    # Draw the ">", the Cursor
+    cursorpos = 0
+    cursor = myfont.render(">", True, cursorcolor)
+    cursorrect = cursor.get_rect()
+    cursorrect = cursorrect.move(x_pos - (size // distance),
+                 (size // distance * cursorpos) + y_pos)
+
+    # The whole While-loop takes care to show the Cursor, move the
+    # Cursor and getting the Keys (1-9 and A-Z) to work...
+    ArrowPressed = True
+    exitMenu = False
+    clock = pygame.time.Clock()
+    filler = pygame.Surface.copy(screen)
+    fillerrect = filler.get_rect()
+    while True:
+        clock.tick(30)
+        if ArrowPressed == True:
+            screen.blit(filler, fillerrect)
+            pygame.display.update(cursorrect)
+            cursorrect = cursor.get_rect()
+            cursorrect = cursorrect.move(x_pos - (size // distance),
+                         (size // distance * cursorpos) + y_pos)
+            screen.blit(cursor, cursorrect)
+            pygame.display.update(cursorrect)
+            ArrowPressed = False
+        if exitMenu == True:
+            break
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return -1
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE and exitAllowed == True:
+                    if cursorpos == len(menu) - 1:
+                        exitMenu = True
+                    else:
+                        cursorpos = len(menu) - 1; ArrowPressed = True
+
+
+                # This Section is huge and ugly, I know... But I don't
+                # know a better method for this^^
+                if event.key == pygame.K_1:
+                    cursorpos = 0; ArrowPressed = True; exitMenu = True
+                elif event.key == pygame.K_2 and len(menu) >= 2:
+                    cursorpos = 1; ArrowPressed = True; exitMenu = True
+                elif event.key == pygame.K_3 and len(menu) >= 3:
+                    cursorpos = 2; ArrowPressed = True; exitMenu = True
+                elif event.key == pygame.K_4 and len(menu) >= 4:
+                    cursorpos = 3; ArrowPressed = True; exitMenu = True
+                elif event.key == pygame.K_5 and len(menu) >= 5:
+                    cursorpos = 4; ArrowPressed = True; exitMenu = True
+                elif event.key == pygame.K_6 and len(menu) >= 6:
+                    cursorpos = 5; ArrowPressed = True; exitMenu = True
+                elif event.key == pygame.K_7 and len(menu) >= 7:
+                    cursorpos = 6; ArrowPressed = True; exitMenu = True
+                elif event.key == pygame.K_8 and len(menu) >= 8:
+                    cursorpos = 7; ArrowPressed = True; exitMenu = True
+                elif event.key == pygame.K_9 and len(menu) >= 9:
+                    cursorpos = 8; ArrowPressed = True; exitMenu = True
+                elif event.key == pygame.K_a and len(menu) >= 10:
+                    cursorpos = 9; ArrowPressed = True; exitMenu = True
+                elif event.key == pygame.K_b and len(menu) >= 11:
+                    cursorpos = 10; ArrowPressed = True; exitMenu = True
+                elif event.key == pygame.K_c and len(menu) >= 12:
+                    cursorpos = 11; ArrowPressed = True; exitMenu = True
+                elif event.key == pygame.K_d and len(menu) >= 13:
+                    cursorpos = 12; ArrowPressed = True; exitMenu = True
+                elif event.key == pygame.K_e and len(menu) >= 14:
+                    cursorpos = 13; ArrowPressed = True; exitMenu = True
+                elif event.key == pygame.K_f and len(menu) >= 15:
+                    cursorpos = 14; ArrowPressed = True; exitMenu = True
+                elif event.key == pygame.K_g and len(menu) >= 16:
+                    cursorpos = 15; ArrowPressed = True; exitMenu = True
+                elif event.key == pygame.K_h and len(menu) >= 17:
+                    cursorpos = 16; ArrowPressed = True; exitMenu = True
+                elif event.key == pygame.K_i and len(menu) >= 18:
+                    cursorpos = 17; ArrowPressed = True; exitMenu = True
+                elif event.key == pygame.K_j and len(menu) >= 19:
+                    cursorpos = 18; ArrowPressed = True; exitMenu = True
+                elif event.key == pygame.K_k and len(menu) >= 20:
+                    cursorpos = 19; ArrowPressed = True; exitMenu = True
+                elif event.key == pygame.K_l and len(menu) >= 21:
+                    cursorpos = 20; ArrowPressed = True; exitMenu = True
+                elif event.key == pygame.K_m and len(menu) >= 22:
+                    cursorpos = 21; ArrowPressed = True; exitMenu = True
+                elif event.key == pygame.K_n and len(menu) >= 23:
+                    cursorpos = 22; ArrowPressed = True; exitMenu = True
+                elif event.key == pygame.K_o and len(menu) >= 24:
+                    cursorpos = 23; ArrowPressed = True; exitMenu = True
+                elif event.key == pygame.K_p and len(menu) >= 25:
+                    cursorpos = 24; ArrowPressed = True; exitMenu = True
+                elif event.key == pygame.K_q and len(menu) >= 26:
+                    cursorpos = 25; ArrowPressed = True; exitMenu = True
+                elif event.key == pygame.K_r and len(menu) >= 27:
+                    cursorpos = 26; ArrowPressed = True; exitMenu = True
+                elif event.key == pygame.K_s and len(menu) >= 28:
+                    cursorpos = 27; ArrowPressed = True; exitMenu = True
+                elif event.key == pygame.K_t and len(menu) >= 29:
+                    cursorpos = 28; ArrowPressed = True; exitMenu = True
+                elif event.key == pygame.K_u and len(menu) >= 30:
+                    cursorpos = 29; ArrowPressed = True; exitMenu = True
+                elif event.key == pygame.K_v and len(menu) >= 31:
+                    cursorpos = 30; ArrowPressed = True; exitMenu = True
+                elif event.key == pygame.K_w and len(menu) >= 32:
+                    cursorpos = 31; ArrowPressed = True; exitMenu = True
+                elif event.key == pygame.K_x and len(menu) >= 33:
+                    cursorpos = 32; ArrowPressed = True; exitMenu = True
+                elif event.key == pygame.K_y and len(menu) >= 34:
+                    cursorpos = 33; ArrowPressed = True; exitMenu = True
+                elif event.key == pygame.K_z and len(menu) >= 35:
+                    cursorpos = 34; ArrowPressed = True; exitMenu = True
+                elif event.key == pygame.K_UP:
+                    ArrowPressed = True
+                    if cursorpos == 0:
+                        cursorpos = len(menu) - 1
+                    else:
+                        cursorpos -= 1
+                elif event.key == pygame.K_DOWN:
+                    ArrowPressed = True
+                    if cursorpos == len(menu) - 1:
+                        cursorpos = 0
+                    else:
+                        cursorpos += 1
+                elif event.key == pygame.K_KP_ENTER or \
+                     event.key == pygame.K_RETURN:
+                            exitMenu = True
+    
+    return cursorpos
+
 
 def drawBox(boxx, boxy, color, pixelx=None, pixely=None):
     # draw a single box (each tetromino piece has four boxes)
@@ -471,14 +778,19 @@ def drawStatus(score, level):
     # draw the score text
     scoreSurf = BASICFONT.render('Score: %s' % score, True, TEXTCOLOR)
     scoreRect = scoreSurf.get_rect()
-    scoreRect.topleft = (WINDOWWIDTH - 150, 20)
+    scoreRect.topleft = (WINDOWWIDTH - 600, 30)
     DISPLAYSURF.blit(scoreSurf, scoreRect)
 
     # draw the level text
     levelSurf = BASICFONT.render('Level: %s' % level, True, TEXTCOLOR)
     levelRect = levelSurf.get_rect()
-    levelRect.topleft = (WINDOWWIDTH - 150, 50)
+    levelRect.topleft = (WINDOWWIDTH - 600, 60)
     DISPLAYSURF.blit(levelSurf, levelRect)
+
+    # ruleSurf = BASICFONT.render('10 point: 1 level up', True, TEXTCOLOR)
+    # ruleRect = ruleSurf.get_rect()
+    # ruleRect.topright = (WINDOWWIDTH - 150, 10)
+    # DISPLAYSURF.blit(ruleSurf, ruleRect)
 
 
 def drawPiece(piece, pixelx=None, pixely=None):
@@ -498,7 +810,7 @@ def drawNextPiece(piece):
     # draw the "next" text
     nextSurf = BASICFONT.render('Next:', True, TEXTCOLOR)
     nextRect = nextSurf.get_rect()
-    nextRect.topleft = (WINDOWWIDTH - 120, 80)
+    nextRect.topleft = (WINDOWWIDTH - 120, 50)
     DISPLAYSURF.blit(nextSurf, nextRect)
     # draw the "next" piece
     drawPiece(piece, pixelx=WINDOWWIDTH-120, pixely=100)
