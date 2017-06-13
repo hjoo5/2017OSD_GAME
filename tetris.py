@@ -317,7 +317,7 @@ def runGame():
                         if not isValidPosition(board, fallingPiece, adjY=i):
                             break
                     fallingPiece['y'] += i - 1
-# block change!@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
                 elif event.key == K_z:
                     savePiece = fallingPiece
                     fallingPiece = nextPiece
