@@ -361,7 +361,7 @@ def runGame():
         # drawing everything on the screen
         DISPLAYSURF.fill(BGCOLOR)
         drawBoard(board)
-        drawStatus(score, level)
+        drawStatus(score, level, highScore)
         drawNextPiece(nextPiece)
         if fallingPiece != None:
             drawPiece(fallingPiece)
@@ -774,23 +774,23 @@ def drawBoard(board):
             drawBox(x, y, board[x][y])
 
 
-def drawStatus(score, level):
+def drawStatus(score, level, highScore):
     # draw the score text
-    scoreSurf = BASICFONT.render('Score: %s' % score, True, TEXTCOLOR)
+    scoreSurf = SFONT.render('Score: %s' % score, True, TEXTCOLOR)
     scoreRect = scoreSurf.get_rect()
-    scoreRect.topleft = (WINDOWWIDTH - 600, 30)
+    scoreRect.topleft = (WINDOWWIDTH - 150, 60)
     DISPLAYSURF.blit(scoreSurf, scoreRect)
 
     # draw the level text
-    levelSurf = BASICFONT.render('Level: %s' % level, True, TEXTCOLOR)
+    levelSurf = SFONT.render('Level: %s' % level, True, TEXTCOLOR)
     levelRect = levelSurf.get_rect()
-    levelRect.topleft = (WINDOWWIDTH - 600, 60)
+    levelRect.topleft = (WINDOWWIDTH - 150, 90)
     DISPLAYSURF.blit(levelSurf, levelRect)
 
-    # ruleSurf = BASICFONT.render('10 point: 1 level up', True, TEXTCOLOR)
-    # ruleRect = ruleSurf.get_rect()
-    # ruleRect.topright = (WINDOWWIDTH - 150, 10)
-    # DISPLAYSURF.blit(ruleSurf, ruleRect)
+    hsSurf = SFONT.render('High Score: %s' % highScore, True, TEXTCOLOR)
+    hsRect = hsSurf.get_rect()
+    hsRect.topright = (WINDOWWIDTH - 450, 400)
+    DISPLAYSURF.blit(hsSurf, hsRect)
 
 
 def drawPiece(piece, pixelx=None, pixely=None):
@@ -808,12 +808,12 @@ def drawPiece(piece, pixelx=None, pixely=None):
 
 def drawNextPiece(piece):
     # draw the "next" text
-    nextSurf = BASICFONT.render('Next:', True, TEXTCOLOR)
+    nextSurf = SFONT.render('Next:', True, TEXTCOLOR)
     nextRect = nextSurf.get_rect()
-    nextRect.topleft = (WINDOWWIDTH - 120, 50)
+    nextRect.topleft = (WINDOWWIDTH - 150, 300)
     DISPLAYSURF.blit(nextSurf, nextRect)
     # draw the "next" piece
-    drawPiece(piece, pixelx=WINDOWWIDTH-120, pixely=100)
+    drawPiece(piece, pixelx=WINDOWWIDTH-160, pixely=320)
 
 
 if __name__ == '__main__':
