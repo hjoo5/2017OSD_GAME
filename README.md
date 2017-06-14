@@ -25,13 +25,13 @@
    게임시작, 음소거 기능, 최고점수 알려주기, 조작법 설명, 게임 종료
 ![](https://github.com/hjoo5/2017OSD_GAME/blob/master/Picture/startscreen.PNG)
 - ### 게임 안에서 >
-   게임점수, 게임 최고점수, 게임 레벨, 다음 블록으로 바꾸기
+   게임점수, 게임 최고점수, 게임 레벨, 다음 블록으로 바꾸기, 메인메뉴로 돌아가기
 ![](https://github.com/hjoo5/2017OSD_GAME/blob/master/Picture/gamescreen.PNG)
 - ### 게임 정지 화면 >
 ![](https://github.com/hjoo5/2017OSD_GAME/blob/master/Picture/pause.PNG)
 - ### 게임오버 화면 >
 ![](https://github.com/hjoo5/2017OSD_GAME/blob/master/Picture/gameover.PNG)
-- ### 음악 > Tell me.mid (음소거 기능)
+- ### 음악 > 음소거 가능
 ![](https://github.com/hjoo5/2017OSD_GAME/blob/master/Picture/mute.PNG)
 - ### 최고 점수 >
 ![](https://github.com/hjoo5/2017OSD_GAME/blob/master/Picture/highscore.PNG)
@@ -45,7 +45,9 @@
 자세한 설명은 WIKI
 
 
-## 부족한 부분
+## 부족한 부분 / 추가하고 싶은 것
 - 메뉴를 선택하고 메인메뉴로 넘어갈 때, 화면에 이전 메뉴 화면이 남아있다.
 - 메뉴를 번호로만 선택할 수 있다. 방향키로 이동하여 선택하는 방법을 추가하고 싶다.
 - 블록을 이동할 때, 블록 한줄이 삭제될 때 등의 이벤트가 발생할때 효과음을 추가하고 싶다.
+- 게임이벤트> 게임 도중에 5초안에 한줄을 없애지못하면 게임이 종료되는 이벤트를 추가하고 싶다.
+- 폭탄이 블록 대신 떨어지면서 폭탄을 이동시키다 바닥에 놓으면 주위 블록이 사라지도록 하고 싶다.
