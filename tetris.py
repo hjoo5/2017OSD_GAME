@@ -1,3 +1,4 @@
+import pygame
 import random, time, pygame, sys
 import pickle
 from pygame.locals import *
@@ -161,7 +162,7 @@ PIECES = {'S': S_SHAPE_TEMPLATE,
 def main():
     global FPSCLOCK, DISPLAYSURF, BASICFONT, BIGFONT, MIDFONT, BFONT, BGCOLOR, muteFlag, SFONT
     pygame.init()
-    pygame.display.set_caption("Tetromino")
+    # pygame.display.set_caption("Tetromino")
     FPSCLOCK = pygame.time.Clock()
     DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
     DISPLAYSURF.fill(BGCOLOR)
@@ -170,10 +171,7 @@ def main():
     BIGFONT = pygame.font.Font('freesansbold.ttf', 100)
     BFONT = pygame.font.Font('freesansbold.ttf', 80)
     SFONT = pygame.font.Font('freesansbold.ttf', 25)
-    titleSurf, titleRect = makeTextObjs('Tetetetris', BFONT, TEXTCOLOR)
-    titleRect.center = (int(WINDOWWIDTH / 2)-3, int(WINDOWHEIGHT / 2)-50)
-    DISPLAYSURF.blit(titleSurf, titleRect)
-    showTextScreen2(' ')
+    showTextScreen2('Tetetetris')
     DISPLAYSURF.fill(BGCOLOR)
     choose = dumbmenu(DISPLAYSURF, [
                         'Start Game',
@@ -181,7 +179,6 @@ def main():
                         'Show Highscore',
                         'Instruction',
                         'Quit Game'], 160,250,None,40,1.4)
-    DISPLAYSURF.fill(BGCOLOR)
     if choose == 0:
         DISPLAYSURF.fill(BGCOLOR)
 
@@ -199,7 +196,7 @@ def main():
     elif choose == 1:
         DISPLAYSURF.fill(BGCOLOR)
         showTextScreen2('About Mute')
-        DISPLAYSURF.fill(BGCOLOR)
+        # DISPLAYSURF.fill(BGCOLOR)
         choose2 = dumbmenu(DISPLAYSURF, [
                                 'Mute',
                                 'Unmute',
@@ -214,13 +211,14 @@ def main():
             main()
 
     elif choose == 2:
+
         DISPLAYSURF.fill(BGCOLOR)
         showScoreScreen()
 
         choose2 = dumbmenu(DISPLAYSURF, [
                                 'Back'], 160,350,None,30,1.4)
         if choose2 == 0 :
-            DISPLAYSURF.fill(BGCOLOR)
+            # DISPLAYSURF.fill(BGCOLOR)
             main()
 
     elif choose == 3:
@@ -326,6 +324,12 @@ def runGame():
                     nextPiece['y'] = -2
                     lastFallTime = time.time()
 
+                elif event.key == K_r:
+                	pygame.mixer.music.stop()
+                	showTextScreen2('Tetetetris')
+                	DISPLAYSURF.fill(BGCOLOR)
+                	main()
+
 
         # handle moving the piece because of user input
         if (movingLeft or movingRight) and time.time() - lastMoveSidewaysTime > MOVESIDEWAYSFREQ:
@@ -368,8 +372,6 @@ def runGame():
 
         pygame.display.update()
         FPSCLOCK.tick(FPS)
-
-    
 
 
 def makeTextObjs(text, font, color):
@@ -421,10 +423,10 @@ def showTextScreen2(text):
     # center of the screen until a key is pressed.
     # Draw the text drop shadow
     titleSurf, titleRect = makeTextObjs(text, MIDFONT, TEXTSHADOWCOLOR)
-    titleRect.center = (int(WINDOWWIDTH / 2), int(WINDOWHEIGHT / 2))
+    titleRect.center = (int(WINDOWWIDTH / 2), int(WINDOWHEIGHT / 2)-47)
     DISPLAYSURF.blit(titleSurf, titleRect)
     titleSurf, titleRect = makeTextObjs(text, MIDFONT, TEXTCOLOR)
-    titleRect.center = (int(WINDOWWIDTH / 2) - 3, int(WINDOWHEIGHT / 2) - 3)
+    titleRect.center = (int(WINDOWWIDTH / 2) - 3, int(WINDOWHEIGHT / 2) - 50)
     DISPLAYSURF.blit(titleSurf, titleRect)
 
     # Draw the additional "Press a key to play." text.
@@ -463,22 +465,25 @@ def showTextScreen4():
     uSurf, uRect = makeTextObjs('Up arrow : rotate right', SFONT, TEXTCOLOR)
     dSurf, dRect = makeTextObjs('Down arrow : Slow drop', SFONT, TEXTCOLOR)
     sSurf, sRect = makeTextObjs('Space bar : Fast drop', SFONT, TEXTCOLOR)
-    pSurf, pRect = makeTextObjs('P key : Pause game', SFONT, TEXTCOLOR)
-    zSurf, zRect = makeTextObjs('Z key : Get next block', SFONT, TEXTCOLOR)
+    k_pSurf, k_pRect = makeTextObjs('P key : Pause game', SFONT, TEXTCOLOR)
+    k_zSurf, k_zRect = makeTextObjs('Z key : Get next block', SFONT, TEXTCOLOR)
+    k_rSurf, k_rRect = makeTextObjs('R key : Go to main menu', SFONT, TEXTCOLOR)
     lRect.center = (int(WINDOWWIDTH / 2)-3, int(WINDOWHEIGHT / 2)-150)
     rRect.center = (int(WINDOWWIDTH / 2)-3, int(WINDOWHEIGHT / 2)-120)
     uRect.center = (int(WINDOWWIDTH / 2)-3, int(WINDOWHEIGHT / 2)-90)
     dRect.center = (int(WINDOWWIDTH / 2)-3, int(WINDOWHEIGHT / 2)-60)
     sRect.center = (int(WINDOWWIDTH / 2)-3, int(WINDOWHEIGHT / 2)-30)
-    pRect.center = (int(WINDOWWIDTH / 2)-3, int(WINDOWHEIGHT / 2))
-    zRect.center = (int(WINDOWWIDTH / 2)-3, int(WINDOWHEIGHT / 2)+30)
+    k_pRect.center = (int(WINDOWWIDTH / 2)-3, int(WINDOWHEIGHT / 2))
+    k_zRect.center = (int(WINDOWWIDTH / 2)-3, int(WINDOWHEIGHT / 2)+30)
+    k_rRect.center = (int(WINDOWWIDTH / 2)-3, int(WINDOWHEIGHT / 2)+60)
     DISPLAYSURF.blit(lSurf, lRect)
     DISPLAYSURF.blit(rSurf, rRect)
     DISPLAYSURF.blit(uSurf, uRect)
     DISPLAYSURF.blit(dSurf, dRect)
     DISPLAYSURF.blit(sSurf, sRect)
-    DISPLAYSURF.blit(pSurf, pRect)
-    DISPLAYSURF.blit(zSurf, zRect)
+    DISPLAYSURF.blit(k_pSurf, k_pRect)
+    DISPLAYSURF.blit(k_zSurf, k_zRect)
+    DISPLAYSURF.blit(k_rSurf, k_rRect)
 
     while checkForKeyPress() == None:
         pygame.display.update()
@@ -657,7 +662,6 @@ def dumbmenu(screen, menu, x_pos = 100, y_pos = 100, font = None,
                     else:
                         cursorpos = len(menu) - 1; ArrowPressed = True
 
-
                 # This Section is huge and ugly, I know... But I don't
                 # know a better method for this^^
                 if event.key == pygame.K_1:
@@ -787,6 +791,7 @@ def drawStatus(score, level, highScore):
     levelRect.topleft = (WINDOWWIDTH - 150, 90)
     DISPLAYSURF.blit(levelSurf, levelRect)
 
+    # draw the high score text
     hsSurf = SFONT.render('High Score: %s' % highScore, True, TEXTCOLOR)
     hsRect = hsSurf.get_rect()
     hsRect.topright = (WINDOWWIDTH - 450, 400)
