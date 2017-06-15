@@ -184,9 +184,9 @@ def main():
 
         if muteFlag == 0 :
             if random.randint(0, 1) == 0:
-                pygame.mixer.music.load('Tell_me.mid')
+                pygame.mixer.music.load('tetrisb.mid')
             else:
-                pygame.mixer.music.load('Tell_me.mid')
+                pygame.mixer.music.load('tetrisc.mid')
             pygame.mixer.music.play(1, 0.0)
         runGame()
         pygame.mixer.music.stop()
